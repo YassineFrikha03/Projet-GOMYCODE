@@ -8,5 +8,4 @@ router.use('/examples', exampleRoutes);
 router.use('/users', userRoutes);
 router.use('/category', categoriesRoutes);
 
-
 export default router;
