@@ -1,5 +1,6 @@
-import Category from "../models/Category.model.js";
 import handleError from "../middlewares/errors/handleError.js";
+import Category from "../models/category.model.js";
+import Product from "../models/product.model.js";
 
 const createCategory = async (req, res) => {
     try {
@@ -62,17 +63,20 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
         const categoryId = req.params.id;
-        // TODO check if category is used in any product before deleting
-        const deletedCategory = await Category.findByIdAndDelete(categoryId);
-        if (!deletedCategory) {
-            return handleError(res, null, "Category not found", 404);
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return handleError(res, null, "Category not found", 404); 
         }
-        return res.status(200).json({ message: "Category deleted successfully" });
+        const products = await Product.find({ category: categoryId });
+        if (products.length > 0) {
+            return handleError(res, null, "Cannot delete category with associated products", 400); 
+        }
+        await Category.findByIdAndDelete(categoryId);
+        return res.status(204).send(); // No content
     } catch (error) {
         handleError(res, error, "Error in deleting category", 500);
     }
 }
-
 const categoryController = {
     createCategory,
     getCategoryById,
@@ -80,6 +84,5 @@ const categoryController = {
     updateCategory,
     deleteCategory
 }
-
 
 export default categoryController;
