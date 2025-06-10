@@ -25,7 +25,7 @@ try {
     await newUser.save();
     const token = jwt.sign({ id: newUser._id }, SECRET_KEY, { expiresIn: '1d' });
     return res.status(201).json({
-        newUser,
+        newUser, 
         token,
     })
 }
