@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     },
     isAdmin: {
         type: Boolean,
-        default: false 
+        enum: false 
     }
 });
 // Create and export the model

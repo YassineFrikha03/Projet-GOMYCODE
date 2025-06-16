@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema({
   user: {
@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'shipped', 'delivered'],
+    enum: ['pending', 'shipped', 'delivered', 'canceled'],
     default: 'pending'
   },
   createdAt: {
@@ -44,6 +44,4 @@ const orderSchema = new mongoose.Schema({
   }
 });
 
-const Order = mongoose.model('Order', orderSchema);
-
-module.exports = Order;
+export default mongoose.model('Order', orderSchema);
