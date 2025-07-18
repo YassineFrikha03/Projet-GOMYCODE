@@ -6,14 +6,18 @@ import productRoutes from './product.route.js';
 import orderRoutes from './order.route.js';
 import authRoutes from './authentication.route.js';
 import   isAuth  from '../middlewares/auth.middlewares.js';
+import isAdmin from '../middlewares/admin.middleware.js';
+
 
 
 const router = Router();
-router.use('/examples', isAuth, exampleRoutes);
-router.use('/users',isAuth, userRoutes);
-router.use('/category', isAuth, categoriesRoutes);
-router.use('/product', isAuth ,productRoutes);
-router.use('/order',  orderRoutes);
+router.use('/examples', isAuth ,isAdmin,exampleRoutes);
+router.use('/users'  ,isAuth,isAdmin,userRoutes);
+router.use('/category',isAuth,isAdmin, categoriesRoutes);
+router.use('/product',isAuth ,isAdmin,productRoutes);
+router.use('/order',isAuth,isAdmin,orderRoutes);
 router.use('/auth', authRoutes);
+router.use('/admin', userRoutes);
+
 
 export default router;

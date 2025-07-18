@@ -5,6 +5,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import routes from './routes/index.js'
+import authRoutes from './routes/authentication.route.js';
 
 // Environment configuration
 dotenv.config();
@@ -25,6 +26,7 @@ mongoose.connect(DB)
 
 // Routes
 app.use(routes);
+app.use('/', authRoutes);
 
 // Start the server
 app.listen(PORT, () => {

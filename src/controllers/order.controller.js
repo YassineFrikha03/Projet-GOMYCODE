@@ -50,17 +50,19 @@ const createOrder = async (req, res) => {
 };
 
 const getOrders = async (req, res) => {
-    try {
-        const orders = await Order.find().populate('user', 'name email').populate('products.product', 'name price');
-        return res.status(200).json(orders);
-    } catch (error) {
-        handleError(res, error, error.message || "Error in fetching Orders", 500);
-    }
-}
+  try {
+    const orders = await Order.find()
+      .populate('user', 'name') 
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch orders", error });
+  }
+};
+
 
 const getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).populate('user', 'name email').populate('products.product', 'name price');
+        const order = await Order.findById(req.params.id).populate('user', 'name email')
         if (!order) {
             return handleError(res, null, "Order not found", 404);
         }
@@ -72,39 +74,46 @@ const getOrderById = async (req, res) => {
 
 const updateOrder = async (req, res) => {
     try {
+        const { user, products, status } = req.body;
 
-        const existingUser = await User.findById(order.user);
+        const existingUser = await User.findById(user);
         if (!existingUser) {
             return handleError(res, null, "The specified user does not exist", 400);
         }
-        const quantityCheck = order.products.every(item => item.quantity >= 1);
+
+        const quantityCheck = products.every(item => item.quantity >= 1);
         if (!quantityCheck) {
-            return handleError(res, null, "the quantity must be >=1", 400);
+            return handleError(res, null, "The quantity must be >=1", 400);
         }
-        const products = await Product.find({ _id: { $in: order.products.map(item => item.product) } });
-        if (products.length !== order.products.length) {
+
+        const productIds = products.map(item => item.product);
+        const foundProducts = await Product.find({ _id: { $in: productIds } });
+        if (foundProducts.length !== productIds.length) {
             return handleError(res, null, "One or more products do not exist", 400);
         }
-        const results = await Promise.all(order.products.map(async (item) => {
+
+        const results = await Promise.all(products.map(async (item) => {
             const product = await Product.findById(item.product);
             if (!product) {
                 throw new Error(`Product with ID ${item.product} does not exist`);
             }
             return product.price * item.quantity;
         }));
-        if (results.some(result => result instanceof Error)) {
-            return handleError(res, null, "Error calculating total price for products", 400);
-        }
 
-                const order = await Order.findByIdAndUpdate(
+        const totalPrice = results.reduce((sum, price) => sum + price, 0);
+        req.body.totalPrice = totalPrice;
+
+        const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true, runValidators: true } ).populate('user', 'name email').populate('products.product', 'name price');
+            { new: true, runValidators: true }
+        ).populate('user', 'name email');
 
-        if (!order) {
+        if (!updatedOrder) {
             return handleError(res, null, "Order not found", 404);
         }
-        return res.status(200).json(order);
+
+        return res.status(200).json(updatedOrder);
     } catch (error) {
         handleError(res, error, error.message || "Error in updating Order", 500);
     }
@@ -153,7 +162,7 @@ const getOrderByStatus = async (req, res) => {
         if (!validStatuses.includes(status)) {
             return handleError(res, null, "Invalid order status", 400);
         }
-        const orders = await Order.find({ status }).populate('user', 'name email').populate('products.product', 'name price');
+        const orders = await Order.find({ status }).populate('user', 'name email')
         return res.status(200).json(orders);
     } catch (error) {
         handleError(res, error, error.message || "Error in fetching Orders by status", 500);
